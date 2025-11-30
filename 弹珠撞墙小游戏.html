@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>弹珠撞墙游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            width: 100%;
+        }
+        
+        .game-section {
+            flex: 1;
+            min-width: 300px;
+            max-width: 600px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            position: relative; /* 用于弹窗定位 */
+        }
+        
+        .info-section {
+            flex: 1;
+            min-width: 300px;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .panel {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+        
+        .panel h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid #fdbb2d;
+            padding-bottom: 8px;
+        }
+        
+        #gameCanvas {
+            background: #0a0e21;
+            border-radius: 10px;
+            display: block;
+            margin: 0 auto;
+            border: 2px solid #fdbb2d;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        button {
+            background: linear-gradient(to right, #fdbb2d, #b21f1f);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        input {
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fdbb2d;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        th {
+            background: rgba(253, 187, 45, 0.3);
+        }
+        
+        tr:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .current-user {
+            background: rgba(253, 187, 45, 0.2);
+        }
+        
+        .level-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .level-bar {
+            flex: 1;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .level-progress {
+            height: 100%;
+            background: linear-gradient(to right, #1a2a6c, #fdbb2d);
+            width: 30%;
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            opacity: 0.8;
+        }
+        
+        /* 弹窗通用样式 */
+        .modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            border: 3px solid #fdbb2d;
+            z-index: 100;
+            display: none;
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        .modal h3 {
+            font-size: 2rem;
+            color: #fdbb2d;
+            margin-bottom: 20px;
+        }
+        
+        .modal p {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        /* 关卡完成提示 */
+        #levelCompletedModal {
+            display: none;
+        }
+        
+        /* 游戏结束提示 */
+        #gameOverModal {
+            display: none;
+        }
+        
+        /* 关卡选择弹窗 */
+        #levelSelectModal {
+            display: none;
+        }
+        
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .level-item {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .level-item.unlocked {
+            background: rgba(253, 187, 45, 0.3);
+            cursor: pointer;
+        }
+        
+        .level-item.current {
+            background: #fdbb2d;
+            color: #1a2a6c;
+        }
+        
+        .level-item.locked {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.3);
+            cursor: not-allowed;
+        }
+        
+        .level-item:hover:not(.locked) {
+            transform: scale(1.05);
+            background: #fdbb2d;
+            color: #1a2a6c;
+        }
+        
+        /* 砖块类型样式说明 */
+        .brick-types {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .brick-type {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .brick-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+        
+        .normal-brick {
+            background: #b21f1f;
+        }
+        
+        .hard-brick {
+            background: #1a2a6c;
+        }
+        
+        .score-brick {
+            background: #fdbb2d;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .game-section, .info-section {
+                max-width: 100%;
+            }
+            
+            .modal {
+                padding: 30px 20px;
+            }
+            
+            .modal h3 {
+                font-size: 1.5rem;
+            }
+            
+            .level-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>弹珠撞墙游戏</h1>
+            <p class="subtitle">挑战你的反应速度，创造新纪录！</p>
+        </header>
+        
+        <div class="main-content">
+            <section class="game-section">
+                <h2>游戏区域</h2>
+                
+                <!-- 关卡完成弹窗 -->
+                <div class="modal" id="levelCompletedModal">
+                    <h3>关卡完成！</h3>
+                    <p>恭喜你通过第 <span id="completedLevel">1</span> 关</p>
+                    <p>得分：<span id="completedScore">0</span> | 用时：<span id="completedTime">00:00</span></p>
+                    <div class="modal-buttons">
+                        <button id="nextLevelBtn">进入下一关</button>
+                        <button id="selectLevelBtnFromComplete">选择关卡</button>
+                    </div>
+                </div>
+                
+                <!-- 游戏结束弹窗 -->
+                <div class="modal" id="gameOverModal">
+                    <h3>游戏结束</h3>
+                    <p>当前关卡：<span id="gameOverLevel">1</span> | 得分：<span id="gameOverScore">0</span></p>
+                    <p>用时：<span id="gameOverTime">00:00</span></p>
+                    <div class="modal-buttons">
+                        <button id="replayCurrentBtn">重玩当前关</button>
+                        <button id="goToLevelSelectBtn">选择关卡</button>
+                        <button id="restartFromFirstBtn">从头开始</button>
+                    </div>
+                </div>
+                
+                <!-- 关卡选择弹窗 -->
+                <div class="modal" id="levelSelectModal">
+                    <h3>选择关卡</h3>
+                    <p>已解锁关卡：<span id="unlockedLevelCount">1</span> 关</p>
+                    <div class="level-grid" id="levelGrid">
+                        <!-- 关卡按钮会动态生成 -->
+                    </div>
+                    <button id="closeLevelSelectBtn">取消</button>
+                </div>
+                
+                <canvas id="gameCanvas" width="560" height="400"></canvas>
+                
+                <div class="controls">
+                    <button id="startBtn">开始游戏</button>
+                    <button id="pauseBtn">暂停</button>
+                    <button id="resetBtn">重新开始</button>
+                    <button id="levelSelectBtn">选择关卡</button>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <div>当前关卡</div>
+                        <div class="stat-value" id="level">1</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>用时</div>
+                        <div class="stat-value" id="timer">00:00</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>得分</div>
+                        <div class="stat-value" id="score">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>生命值</div>
+                        <div class="stat-value" id="lives">3</div>
+                    </div>
+                </div>
+                
+                <div class="level-indicator">
+                    <span>关卡进度:</span>
+                    <div class="level-bar">
+                        <div class="level-progress"></div>
+                    </div>
+                </div>
+                
+                <!-- 砖块类型说明 -->
+                <div class="brick-types">
+                    <div class="brick-type">
+                        <div class="brick-color normal-brick"></div>
+                        <span>普通砖块 (10分)</span>
+                    </div>
+                    <div class="brick-type">
+                        <div class="brick-color hard-brick"></div>
+                        <span>坚硬砖块 (20分，需击中2次)</span>
+                    </div>
+                    <div class="brick-type">
+                        <div class="brick-color score-brick"></div>
+                        <span>加分砖块 (50分)</span>
+                    </div>
+                </div>
+                
+                <div class="instructions">
+                    <p>使用鼠标移动挡板，防止弹珠掉落。击中砖块得分，清空所有砖块进入下一关。</p>
+                </div>
+            </section>
+            
+            <section class="info-section">
+                <div class="panel">
+                    <h2>用户登录</h2>
+                    <div class="auth-form">
+                        <input type="text" id="username" placeholder="用户名">
+                        <input type="password" id="password" placeholder="密码">
+                        <button id="loginBtn">登录</button>
+                        <button id="registerBtn">注册新用户</button>
+                    </div>
+                    <div id="userInfo" style="display:none; margin-top:15px;">
+                        <p>欢迎, <span id="displayName">用户</span>!</p>
+                        <button id="logoutBtn">退出登录</button>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h2>个人排名</h2>
+                    <table id="personalRanking">
+                        <thead>
+                            <tr>
+                                <th>关卡</th>
+                                <th>用时</th>
+                                <th>得分</th>
+                                <th>日期</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>3</td>
+                                <td>02:45</td>
+                                <td>1250</td>
+                                <td>2023-10-15</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>01:30</td>
+                                <td>850</td>
+                                <td>2023-10-14</td>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>00:45</td>
+                                <td>500</td>
+                                <td>2023-10-13</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="panel">
+                    <h2>排行榜</h2>
+                    <table id="globalRanking">
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>玩家</th>
+                                <th>最高分</th>
+                                <th>最佳关卡</th>
+                                <th>用时</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>游戏大师</td>
+                                <td>2850</td>
+                                <td>5</td>
+                                <td>04:15</td>
+                            </tr>
+                            <tr class="current-user">
+                                <td>2</td>
+                                <td>弹珠高手</td>
+                                <td>2450</td>
+                                <td>4</td>
+                                <td>03:50</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>新手玩家</td>
+                                <td>1850</td>
+                                <td>3</td>
+                                <td>02:45</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>挑战者</td>
+                                <td>1200</td>
+                                <td>2</td>
+                                <td>01:55</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>初学者</td>
+                                <td>750</td>
+                                <td>1</td>
+                                <td>01:10</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        // 游戏变量
+        let canvas = document.getElementById('gameCanvas');
+        let ctx = canvas.getContext('2d');
+        let gameRunning = false;
+        let gamePaused = false;
+        let score = 0;
+        let level = 1;
+        let lives = 3;
+        let timer = 0;
+        let timerInterval;
+        let levelCompleted = false; // 标记是否完成当前关卡
+        let maxUnlockedLevel = 1; // 已解锁的最大关卡（默认1关）
+        const totalLevels = 10; // 总关卡数
+        
+        // DOM元素
+        // 弹窗元素
+        const levelCompletedModal = document.getElementById('levelCompletedModal');
+        const gameOverModal = document.getElementById('gameOverModal');
+        const levelSelectModal = document.getElementById('levelSelectModal');
+        
+        // 关卡完成弹窗元素
+        const completedLevelEl = document.getElementById('completedLevel');
+        const completedScoreEl = document.getElementById('completedScore');
+        const completedTimeEl = document.getElementById('completedTime');
+        const nextLevelBtn = document.getElementById('nextLevelBtn');
+        const selectLevelBtnFromComplete = document.getElementById('selectLevelBtnFromComplete');
+        
+        // 游戏结束弹窗元素
+        const gameOverLevelEl = document.getElementById('gameOverLevel');
+        const gameOverScoreEl = document.getElementById('gameOverScore');
+        const gameOverTimeEl = document.getElementById('gameOverTime');
+        const replayCurrentBtn = document.getElementById('replayCurrentBtn');
+        const goToLevelSelectBtn = document.getElementById('goToLevelSelectBtn');
+        const restartFromFirstBtn = document.getElementById('restartFromFirstBtn');
+        
+        // 关卡选择弹窗元素
+        const levelGrid = document.getElementById('levelGrid');
+        const unlockedLevelCountEl = document.getElementById('unlockedLevelCount');
+        const closeLevelSelectBtn = document.getElementById('closeLevelSelectBtn');
+        const levelSelectBtn = document.getElementById('levelSelectBtn');
+        
+        // 弹珠属性
+        let ball = {
+            x: canvas.width / 2,
+            y: canvas.height - 30,
+            dx: 4,
+            dy: -4,
+            radius: 10
+        };
+        
+        // 挡板属性
+        let paddle = {
+            height: 10,
+            width: 75,
+            x: (canvas.width - 75) / 2
+        };
+        
+        // 砖块属性（根据关卡动态调整）
+        let brickRowCount = 3;
+        let brickColumnCount = 5;
+        let brickWidth = 75;
+        let brickHeight = 20;
+        let brickPadding = 10;
+        let brickOffsetTop = 30;
+        let brickOffsetLeft = 30;
+        
+        // 创建砖块数组
+        let bricks = [];
+        
+        // 初始化砖块位置（新增砖块类型）
+        function initBricks() {
+            bricks = [];
+            // 根据关卡调整特殊砖块比例
+            const hardBrickRatio = Math.min(0.2 + (level - 1) * 0.05, 0.4); // 坚硬砖块比例：20% ~ 40%
+            const scoreBrickRatio = Math.min(0.1 + (level - 1) * 0.03, 0.2); // 加分砖块比例：10% ~ 20%
+            
+            for (let c = 0; c < brickColumnCount; c++) {
+                bricks[c] = [];
+                for (let r = 0; r < brickRowCount; r++) {
+                    // 随机生成砖块类型
+                    let brickType = 'normal';
+                    const random = Math.random();
+                    
+                    if (random < hardBrickRatio) {
+                        brickType = 'hard';
+                    } else if (random < hardBrickRatio + scoreBrickRatio) {
+                        brickType = 'score';
+                    }
+                    
+                    bricks[c][r] = { 
+                        x: c * (brickWidth + brickPadding) + brickOffsetLeft,
+                        y: r * (brickHeight + brickPadding) + brickOffsetTop,
+                        type: brickType,
+                        health: brickType === 'hard' ? 2 : 1, // 坚硬砖块有2点生命值
+                        status: 1
+                    };
+                }
+            }
+        }
+        
+        // 根据关卡设置游戏难度和砖块数量
+        function setupLevel(targetLevel) {
+            // 停止当前游戏和计时器
+            gameRunning = false;
+            gamePaused = false;
+            levelCompleted = false;
+            clearInterval(timerInterval);
+            
+            // 重置基础参数
+            lives = 3;
+            score = 0;
+            timer = 0;
+            
+            // 根据关卡调整难度
+            switch(targetLevel) {
+                case 1:
+                    brickRowCount = 3;
+                    brickColumnCount = 5;
+                    ball.dx = 4;
+                    ball.dy = -4;
+                    break;
+                case 2:
+                    brickRowCount = 4;
+                    brickColumnCount = 5;
+                    ball.dx = 4.2;
+                    ball.dy = -4.2;
+                    break;
+                case 3:
+                    brickRowCount = 4;
+                    brickColumnCount = 6;
+                    ball.dx = 4.4;
+                    ball.dy = -4.4;
+                    break;
+                case 4:
+                    brickRowCount = 5;
+                    brickColumnCount = 6;
+                    ball.dx = 4.6;
+                    ball.dy = -4.6;
+                    break;
+                case 5:
+                    brickRowCount = 5;
+                    brickColumnCount = 7;
+                    ball.dx = 4.8;
+                    ball.dy = -4.8;
+                    break;
+                case 6:
+                    brickRowCount = 6;
+                    brickColumnCount = 7;
+                    ball.dx = 5.0;
+                    ball.dy = -5.0;
+                    break;
+                case 7:
+                    brickRowCount = 6;
+                    brickColumnCount = 8;
+                    ball.dx = 5.2;
+                    ball.dy = -5.2;
+                    break;
+                case 8:
+                    brickRowCount = 7;
+                    brickColumnCount = 8;
+                    ball.dx = 5.4;
+                    ball.dy = -5.4;
+                    break;
+                case 9:
+                    brickRowCount = 7;
+                    brickColumnCount = 9;
+                    ball.dx = 5.6;
+                    ball.dy = -5.6;
+                    break;
+                case 10:
+                    brickRowCount = 8;
+                    brickColumnCount = 9;
+                    ball.dx = 5.8;
+                    ball.dy = -5.8;
+                    break;
+            }
+            
+            // 重置弹珠和挡板位置
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height - 30;
+            paddle.x = (canvas.width - paddle.width) / 2;
+            
+            // 初始化砖块
+            initBricks();
+            
+            // 更新UI
+            document.getElementById('level').textContent = targetLevel;
+            document.getElementById('lives').textContent = lives;
+            document.getElementById('score').textContent = score;
+            document.getElementById('timer').textContent = '00:00';
+            
+            // 更新关卡进度条
+            const progress = (targetLevel - 1) / totalLevels * 100;
+            document.querySelector('.level-progress').style.width = `${progress}%`;
+            
+            // 更新当前关卡
+            level = targetLevel;
+            
+            // 确保已解锁关卡记录正确
+            if (targetLevel > maxUnlockedLevel) {
+                maxUnlockedLevel = targetLevel;
+                updateLevelSelectGrid();
+            }
+            
+            // 重绘初始界面
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBricks();
+            drawBall();
+            drawPaddle();
+        }
+        
+        // 绘制弹珠
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#fdbb2d';
+            ctx.fill();
+            ctx.closePath();
+        }
+        
+        // 绘制挡板
+        function drawPaddle() {
+            ctx.beginPath();
+            ctx.rect(paddle.x, canvas.height - paddle.height, paddle.width, paddle.height);
+            ctx.fillStyle = '#1a2a6c';
+            ctx.fill();
+            ctx.closePath();
+        }
+        
+        // 绘制砖块（根据类型绘制不同颜色）
+        function drawBricks() {
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    if (bricks[c][r].status === 1) {
+                        let brickX = bricks[c][r].x;
+                        let brickY = bricks[c][r].y;
+                        
+                        // 根据砖块类型设置颜色
+                        switch(bricks[c][r].type) {
+                            case 'normal':
+                                ctx.fillStyle = '#b21f1f'; // 红色：普通砖块
+                                break;
+                            case 'hard':
+                                ctx.fillStyle = '#1a2a6c'; // 蓝色：坚硬砖块
+                                // 绘制坚硬砖块的生命值指示
+                                ctx.beginPath();
+                                ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                                ctx.fill();
+                                ctx.closePath();
+                                
+                                // 绘制生命值文字
+                                ctx.fillStyle = 'white';
+                                ctx.font = '12px Arial';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(bricks[c][r].health, brickX + brickWidth/2, brickY + brickHeight/2);
+                                continue;
+                            case 'score':
+                                ctx.fillStyle = '#fdbb2d'; // 黄色：加分砖块
+                                break;
+                        }
+                        
+                        ctx.beginPath();
+                        ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                }
+            }
+        }
+        
+        // 检查是否所有砖块都被清除
+        function checkAllBricksCleared() {
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    if (bricks[c][r].status === 1) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        
+        // 碰撞检测（适配不同砖块类型）
+        function collisionDetection() {
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    let b = bricks[c][r];
+                    if (b.status === 1) {
+                        let ballCenterX = ball.x;
+                        let ballCenterY = ball.y;
+                        let brickCenterX = b.x + brickWidth / 2;
+                        let brickCenterY = b.y + brickHeight / 2;
+                        
+                        let dx = Math.abs(ballCenterX - brickCenterX);
+                        let dy = Math.abs(ballCenterY - brickCenterY);
+                        
+                        if (dx < brickWidth / 2 + ball.radius && dy < brickHeight / 2 + ball.radius) {
+                            let overlapX = brickWidth / 2 + ball.radius - dx;
+                            let overlapY = brickHeight / 2 + ball.radius - dy;
+                            
+                            if (overlapX < overlapY) {
+                                ball.dx = -ball.dx;
+                            } else {
+                                ball.dy = -ball.dy;
+                            }
+                            
+                            // 处理不同类型砖块的碰撞
+                            if (b.type === 'normal') {
+                                // 普通砖块：直接销毁，加10分
+                                b.status = 0;
+                                score += 10;
+                            } else if (b.type === 'hard') {
+                                // 坚硬砖块：减少生命值，生命值为0时销毁，加20分
+                                b.health--;
+                                if (b.health <= 0) {
+                                    b.status = 0;
+                                    score += 20;
+                                }
+                            } else if (b.type === 'score') {
+                                // 加分砖块：直接销毁，加50分
+                                b.status = 0;
+                                score += 50;
+                            }
+                            
+                            document.getElementById('score').textContent = score;
+                            
+                            if (checkAllBricksCleared()) {
+                                // 解锁下一关（如果不是最后一关）
+                                if (level < totalLevels) {
+                                    maxUnlockedLevel = Math.max(maxUnlockedLevel, level + 1);
+                                    updateLevelSelectGrid();
+                                }
+                                showLevelCompleted();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 显示关卡完成提示
+        function showLevelCompleted() {
+            gameRunning = false;
+            clearInterval(timerInterval);
+            levelCompleted = true;
+            
+            completedLevelEl.textContent = level;
+            completedScoreEl.textContent = score;
+            completedTimeEl.textContent = formatTime(timer);
+            
+            // 如果是最后一关，修改按钮文本
+            if (level === totalLevels) {
+                nextLevelBtn.textContent = "重新挑战";
+                nextLevelBtn.onclick = () => {
+                    setupLevel(totalLevels);
+                    levelCompletedModal.style.display = 'none';
+                };
+            } else {
+                nextLevelBtn.textContent = "进入下一关";
+                nextLevelBtn.onclick = levelUp;
+            }
+            
+            levelCompletedModal.style.display = 'block';
+        }
+        
+        // 升级关卡
+        function levelUp() {
+            const nextLevel = level + 1;
+            if (nextLevel <= totalLevels) {
+                setupLevel(nextLevel);
+                levelCompletedModal.style.display = 'none';
+                levelCompleted = false;
+            }
+        }
+        
+        // 显示游戏结束提示
+        function showGameOver() {
+            gameRunning = false;
+            clearInterval(timerInterval);
+            
+            gameOverLevelEl.textContent = level;
+            gameOverScoreEl.textContent = score;
+            gameOverTimeEl.textContent = formatTime(timer);
+            
+            gameOverModal.style.display = 'block';
+        }
+        
+        // 绘制游戏
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBricks();
+            drawBall();
+            drawPaddle();
+            collisionDetection();
+            
+            // 弹珠碰撞边界检测
+            if (ball.x + ball.dx > canvas.width - ball.radius || ball.x + ball.dx < ball.radius) {
+                ball.dx = -ball.dx;
+            }
+            if (ball.y + ball.dy < ball.radius) {
+                ball.dy = -ball.dy;
+            } else if (ball.y + ball.dy > canvas.height - ball.radius) {
+                // 弹珠碰到底部
+                if (ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
+                    let hitPosition = (ball.x - (paddle.x + paddle.width / 2)) / (paddle.width / 2);
+                    ball.dx = hitPosition * 6;
+                    ball.dy = -ball.dy;
+                } else {
+                    lives--;
+                    document.getElementById('lives').textContent = lives;
+                    if (lives <= 0) {
+                        showGameOver();
+                    } else {
+                        ball.x = canvas.width / 2;
+                        ball.y = canvas.height - 30;
+                        ball.dx = 4 * (Math.random() > 0.5 ? 1 : -1);
+                        ball.dy = -4;
+                        paddle.x = (canvas.width - paddle.width) / 2;
+                    }
+                }
+            }
+            
+            // 移动弹珠
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+            
+            // 游戏循环
+            if (gameRunning && !gamePaused && !levelCompleted) {
+                requestAnimationFrame(draw);
+            }
+        }
+        
+        // 开始游戏（通用函数）
+        function startGame() {
+            if (!gameRunning && !levelCompleted) {
+                gameRunning = true;
+                gamePaused = false;
+                startTimer();
+                draw();
+            }
+        }
+        
+        // 鼠标移动控制挡板
+        canvas.addEventListener('mousemove', (e) => {
+            if (gameRunning && !gamePaused && !levelCompleted) {
+                let relativeX = e.clientX - canvas.getBoundingClientRect().left;
+                if (relativeX > paddle.width / 2 && relativeX < canvas.width - paddle.width / 2) {
+                    paddle.x = relativeX - paddle.width / 2;
+                }
+            }
+        });
+        
+        // 更新关卡选择网格
+        function updateLevelSelectGrid() {
+            levelGrid.innerHTML = '';
+            unlockedLevelCountEl.textContent = maxUnlockedLevel;
+            
+            for (let i = 1; i <= totalLevels; i++) {
+                const levelItem = document.createElement('div');
+                levelItem.className = 'level-item';
+                levelItem.textContent = `第 ${i} 关`;
+                
+                if (i > maxUnlockedLevel) {
+                    levelItem.classList.add('locked');
+                } else {
+                    levelItem.classList.add('unlocked');
+                    if (i === level) {
+                        levelItem.classList.add('current');
+                    }
+                    
+                    // 点击选择关卡 - 修复核心问题：选择关卡后正确初始化游戏状态
+                    levelItem.addEventListener('click', () => {
+                        setupLevel(i);
+                        levelSelectModal.style.display = 'none';
+                        // 选择关卡后不自动开始，让玩家点击开始按钮，避免状态冲突
+                    });
+                }
+                
+                levelGrid.appendChild(levelItem);
+            }
+        }
+        
+        // 事件监听 - 开始游戏
+        document.getElementById('startBtn').addEventListener('click', () => {
+            if (!gameRunning && !levelCompleted) {
+                startGame();
+            } else if (gamePaused && !levelCompleted) {
+                gamePaused = false;
+                startTimer();
+                draw();
+            }
+        });
+        
+        // 事件监听 - 暂停游戏
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            if (gameRunning && !gamePaused && !levelCompleted) {
+                gamePaused = true;
+                clearInterval(timerInterval);
+            }
+        });
+        
+        // 事件监听 - 重新开始（当前关）
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            setupLevel(level);
+        });
+        
+        // 事件监听 - 关卡选择按钮
+        levelSelectBtn.addEventListener('click', () => {
+            if (gameRunning) {
+                gamePaused = true;
+                clearInterval(timerInterval);
+            }
+            updateLevelSelectGrid();
+            levelSelectModal.style.display = 'block';
+        });
+        
+        // 事件监听 - 从关卡完成弹窗进入关卡选择
+        selectLevelBtnFromComplete.addEventListener('click', () => {
+            levelCompletedModal.style.display = 'none';
+            updateLevelSelectGrid();
+            levelSelectModal.style.display = 'block';
+        });
+        
+        // 事件监听 - 关闭关卡选择
+        closeLevelSelectBtn.addEventListener('click', () => {
+            levelSelectModal.style.display = 'none';
+            if (gameRunning && gamePaused) {
+                gamePaused = false;
+                startTimer();
+                draw();
+            }
+        });
+        
+        // 事件监听 - 游戏结束后重玩当前关
+        replayCurrentBtn.addEventListener('click', () => {
+            gameOverModal.style.display = 'none';
+            setupLevel(level);
+        });
+        
+        // 事件监听 - 游戏结束后进入关卡选择
+        goToLevelSelectBtn.addEventListener('click', () => {
+            gameOverModal.style.display = 'none';
+            updateLevelSelectGrid();
+            levelSelectModal.style.display = 'block';
+        });
+        
+        // 事件监听 - 游戏结束后从头开始
+        restartFromFirstBtn.addEventListener('click', () => {
+            gameOverModal.style.display = 'none';
+            setupLevel(1);
+        });
+        
+        // 开始计时器
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timer++;
+                document.getElementById('timer').textContent = formatTime(timer);
+            }, 1000);
+        }
+        
+        // 格式化时间显示
+        function formatTime(seconds) {
+            let mins = Math.floor(seconds / 60);
+            let secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // 用户认证功能（简化版）
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            let username = document.getElementById('username').value;
+            let password = document.getElementById('password').value;
+            
+            if (username && password) {
+                document.getElementById('displayName').textContent = username;
+                document.getElementById('userInfo').style.display = 'block';
+                document.querySelector('.auth-form').style.display = 'none';
+                console.log(`用户 ${username} 登录成功`);
+            } else {
+                alert('请输入用户名和密码');
+            }
+        });
+        
+        document.getElementById('registerBtn').addEventListener('click', () => {
+            let username = document.getElementById('username').value;
+            let password = document.getElementById('password').value;
+            
+            if (username && password) {
+                alert(`用户 ${username} 注册成功！现在可以登录了。`);
+            } else {
+                alert('请输入用户名和密码');
+            }
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            document.getElementById('userInfo').style.display = 'none';
+            document.querySelector('.auth-form').style.display = 'flex';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        });
+        
+        // 初始化游戏（默认第一关）
+        setupLevel(1);
+        updateLevelSelectGrid();
+    </script>
+</body>
+</html>
